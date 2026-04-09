@@ -39,9 +39,9 @@ type encoder struct {
 
 type emitScalarOption func(*yaml_event_t)
 
-func allowTrailingSpaceInLiteral() emitScalarOption {
+func allowTrailingSpaceInLiteral(allow bool) emitScalarOption {
 	return func(event *yaml_event_t) {
-		event.allow_trailing_space_in_literal = true
+		event.allow_trailing_space_in_literal = allow
 	}
 
 }
@@ -582,7 +582,7 @@ func (e *encoder) node(node *Node, tail string) {
 			style = yaml_DOUBLE_QUOTED_SCALAR_STYLE
 		}
 
-		e.emitScalar(value, node.Anchor, tag, style, []byte(node.HeadComment), []byte(node.LineComment), []byte(node.FootComment), []byte(tail))
+		e.emitScalar(value, node.Anchor, tag, style, []byte(node.HeadComment), []byte(node.LineComment), []byte(node.FootComment), []byte(tail), allowTrailingSpaceInLiteral(node.AllowTrailingSpaceInLiteral))
 	default:
 		failf("cannot encode node with unknown kind %d", node.Kind)
 	}
