@@ -37,6 +37,15 @@ type encoder struct {
 	doneInit bool
 }
 
+type emitScalarOption func(*yaml_event_t)
+
+func allowTrailingSpaceInLiteral() emitScalarOption {
+	return func(event *yaml_event_t) {
+		event.allow_trailing_space_in_literal = true
+	}
+
+}
+
 func newEncoder() *encoder {
 	e := &encoder{}
 	yaml_emitter_initialize(&e.emitter)
@@ -411,7 +420,7 @@ func (e *encoder) nilv() {
 	e.emitScalar("null", "", "", yaml_PLAIN_SCALAR_STYLE, nil, nil, nil, nil)
 }
 
-func (e *encoder) emitScalar(value, anchor, tag string, style yaml_scalar_style_t, head, line, foot, tail []byte) {
+func (e *encoder) emitScalar(value, anchor, tag string, style yaml_scalar_style_t, head, line, foot, tail []byte, options ...emitScalarOption) {
 	// TODO Kill this function. Replace all initialize calls by their underlining Go literals.
 	implicit := tag == ""
 	if !implicit {
@@ -422,6 +431,9 @@ func (e *encoder) emitScalar(value, anchor, tag string, style yaml_scalar_style_
 	e.event.line_comment = line
 	e.event.foot_comment = foot
 	e.event.tail_comment = tail
+	for _, opt := range options {
+		opt(&e.event)
+	}
 	e.emit()
 }
 
